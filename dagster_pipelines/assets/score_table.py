@@ -26,7 +26,7 @@ def score_table(context: AssetExecutionContext, eval_results: dict) -> None:
     now = datetime.now(timezone.utc)
     score_rows = [
         (run_id, task, metric, value, now)
-        for task, metrics in eval_results["results"].items()
+        for task, metrics in eval_results.items()
         for metric, value in metrics.items()
         if isinstance(value, float)
     ]
