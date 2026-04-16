@@ -11,4 +11,5 @@ dependencies = [
     "duckdb>=1.5.2",
     "lm-eval[api]>=0.4.11",
     "openai>=1.0.0",
+    "transformers>=5.5.4",
 ]
