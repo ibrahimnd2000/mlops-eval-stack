@@ -1,7 +1,8 @@
 import duckdb
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent / "eval_scores.duckdb"
+STORAGE_DIR = Path(__file__).resolve().parent
+DB_PATH = STORAGE_DIR / "eval_scores.duckdb"
 
 
 def get_connection() -> duckdb.DuckDBPyConnection:

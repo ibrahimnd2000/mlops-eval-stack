@@ -1,11 +1,10 @@
 import json
 from datetime import datetime, timezone
-from pathlib import Path
 
-import duckdb
 from dagster import AssetExecutionContext, AssetIn, asset
+from storage.db import STORAGE_DIR, ensure_schema, get_connection
 
-LOG_PATH = Path("storage/token_metrics.jsonl")
+LOG_PATH = STORAGE_DIR / "token_metrics.jsonl"
 
 
 def _percentile(sorted_data: list[float], p: int) -> float:
@@ -19,23 +18,8 @@ def _percentile(sorted_data: list[float], p: int) -> float:
 )
 def score_table(context: AssetExecutionContext, eval_results: dict) -> None:
     """Normalise and store eval scores + token metrics; export Parquet snapshots."""
-    con = duckdb.connect("storage/eval_scores.duckdb")
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS scores (
-            run_id VARCHAR,
-            task VARCHAR,
-            metric VARCHAR,
-            value DOUBLE,
-            ran_at TIMESTAMP
-        )
-    """)
-    con.execute("""
-        CREATE TABLE IF NOT EXISTS latency_reports (
-            computed_at TIMESTAMP,
-            metric VARCHAR,
-            value DOUBLE
-        )
-    """)
+    con = get_connection()
+    ensure_schema(con)
 
     # eval scores
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S")
@@ -68,7 +52,9 @@ def score_table(context: AssetExecutionContext, eval_results: dict) -> None:
             )
             context.log.info("Stored latency percentiles from %d token records", len(records))
 
-    # parquet snapshots
-    con.execute("COPY scores TO 'storage/scores.parquet' (FORMAT PARQUET)")
-    con.execute("COPY latency_reports TO 'storage/latency_reports.parquet' (FORMAT PARQUET)")
+    # parquet snapshots — use absolute paths so COPY works regardless of CWD
+    scores_parquet = str(STORAGE_DIR / "scores.parquet")
+    latency_parquet = str(STORAGE_DIR / "latency_reports.parquet")
+    con.execute(f"COPY scores TO '{scores_parquet}' (FORMAT PARQUET)")
+    con.execute(f"COPY latency_reports TO '{latency_parquet}' (FORMAT PARQUET)")
     con.close()
