@@ -4,4 +4,10 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "dagster>=1.13.0",
+    "dagster-webserver>=1.13.0",
+    "duckdb>=1.5.2",
+    "lm-eval>=0.4.11",
+    "openai>=1.0.0",
+]
