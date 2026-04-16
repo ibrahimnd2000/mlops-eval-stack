@@ -9,6 +9,6 @@ dependencies = [
     "dagster-postgres>=0.29.0",
     "dagster-webserver>=1.13.0",
     "duckdb>=1.5.2",
-    "lm-eval>=0.4.11",
+    "lm-eval[api]>=0.4.11",
     "openai>=1.0.0",
 ]
