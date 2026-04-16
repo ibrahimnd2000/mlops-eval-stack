@@ -1,5 +1,5 @@
 import duckdb
-from dagster import AssetExecutionContext, AssetIn, MetadataValue, asset
+from dagster import AssetExecutionContext, MetadataValue, asset
 from storage.db import STORAGE_DIR, get_connection
 
 DASHBOARD_PATH = STORAGE_DIR / "dashboard.html"
@@ -19,10 +19,10 @@ def _table(con: duckdb.DuckDBPyConnection, sql: str) -> str:
 
 
 @asset(
-    ins={"score_table": AssetIn()},
+    deps=["score_table"],
     group_name="evaluation",
 )
-def dashboard(context: AssetExecutionContext, score_table: None) -> None:
+def dashboard(context: AssetExecutionContext) -> None:
     """Write a static HTML dashboard with benchmark score trends and latency summary."""
     con = get_connection()
 
