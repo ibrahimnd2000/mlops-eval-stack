@@ -1,0 +1,18 @@
+services:
+  dagster-webserver:
+    volumes:
+      - ./dagster_pipelines:/app/dagster_pipelines
+      - ./eval_harness:/app/eval_harness
+      - ./inference:/app/inference
+      - ./storage:/app/storage
+      - ./dagster.yaml:/app/dagster.yaml
+      - ./workspace.yaml:/app/workspace.yaml
+
+  dagster-daemon:
+    volumes:
+      - ./dagster_pipelines:/app/dagster_pipelines
+      - ./eval_harness:/app/eval_harness
+      - ./inference:/app/inference
+      - ./storage:/app/storage
+      - ./dagster.yaml:/app/dagster.yaml
+      - ./workspace.yaml:/app/workspace.yaml
