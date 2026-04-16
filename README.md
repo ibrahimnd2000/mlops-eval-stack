@@ -52,7 +52,7 @@ mlops-eval-stack/
 ├── eval_harness/
 │   └── runner.py            # Thin wrapper around lm_eval.simple_evaluate
 ├── inference/
-│   ├── serve.py             # Launches vLLM + optional ngrok tunnel (Colab)
+│   ├── serve.py             # Launches vLLM + localtunnel public URL (Colab)
 │   └── observer.py          # TokenObserver — writes JSONL per request
 ├── storage/                 # Runtime artefacts (DuckDB, Parquet, dashboard.html)
 ├── notebooks/
@@ -69,8 +69,8 @@ mlops-eval-stack/
 git clone https://github.com/mibrahim2000/mlops-eval-stack
 cd mlops-eval-stack
 
-# Point at your vLLM endpoint (ngrok URL from Colab, or local)
-export VLLM_BASE_URL=https://your-ngrok-url.ngrok.io
+# Point at your vLLM endpoint (localtunnel URL from Colab, or local)
+export VLLM_BASE_URL=https://your-tunnel-url.loca.lt
 
 docker compose up --build
 ```
@@ -106,17 +106,18 @@ Open `notebooks/colab_setup.ipynb` in Google Colab (GPU runtime). The notebook:
 
 1. Installs vLLM and dependencies
 2. Starts the vLLM OpenAI-compatible server on port 8000
-3. Creates an ngrok tunnel and prints the public URL
+3. Opens a localtunnel and prints the public URL
 
 Paste the public URL as `VLLM_BASE_URL` when starting the stack.
 
 ```python
 # notebooks/colab_setup.ipynb — key cells
-!pip install vllm pyngrok
+!pip install vllm
+!npm install -g localtunnel -q
 
 from inference.serve import launch
 public_url = launch(model="Qwen/Qwen2.5-1.5B-Instruct", port=8000)
-print(public_url)  # e.g. https://abc123.ngrok.io
+print(public_url)  # e.g. https://funny-windows-relax.loca.lt
 ```
 
 ## Recording token metrics
