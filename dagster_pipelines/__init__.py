@@ -1,4 +1,4 @@
-from dagster import Definitions
+from dagster import Definitions, EnvVar
 
 from .assets.dashboard import dashboard
 from .assets.eval_run import eval_results
@@ -10,8 +10,8 @@ defs = Definitions(
     assets=[eval_results, score_table, dashboard],
     resources={
         "vllm": VLLMResource(
-            base_url="http://localhost:8000",
-            model_name="Qwen/Qwen2.5-1.5B-Instruct",
+            base_url=EnvVar("VLLM_BASE_URL"),
+            model_name=EnvVar("VLLM_MODEL_NAME"),
         )
     },
     jobs=[eval_job],

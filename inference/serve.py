@@ -1,5 +1,6 @@
 """Launch vLLM with an optional ngrok tunnel — intended for Colab GPU environments."""
 import argparse
+import os
 import subprocess
 import sys
 
@@ -15,6 +16,11 @@ def launch(model: str = "Qwen/Qwen2.5-1.5B-Instruct", port: int = 8000) -> str:
 
     try:
         from pyngrok import ngrok
+
+        auth_token = os.environ.get("NGROK_AUTH_TOKEN")
+        if auth_token:
+            ngrok.set_auth_token(auth_token)
+
         tunnel = ngrok.connect(port)
         public_url: str = tunnel.public_url
         print(f"vLLM public URL: {public_url}")
@@ -27,7 +33,7 @@ def launch(model: str = "Qwen/Qwen2.5-1.5B-Instruct", port: int = 8000) -> str:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", default="Qwen/Qwen2.5-1.5B-Instruct")
+    parser.add_argument("--model", default=os.environ.get("VLLM_MODEL_NAME", "Qwen/Qwen2.5-1.5B-Instruct"))
     parser.add_argument("--port", type=int, default=8000)
     args = parser.parse_args()
     launch(model=args.model, port=args.port)

@@ -21,14 +21,14 @@ services:
     command: uv run dagster-webserver -h 0.0.0.0 -p 3000
     ports:
       - "3000:3000"
+    env_file: .env
     environment:
-      DAGSTER_POSTGRES_URL: postgresql://dagster:dagster@postgres/dagster
-      # Override vLLM endpoint at runtime: docker compose run -e VLLM_BASE_URL=...
+      # postgres URL override: keeps DB creds out of .env when running locally
+      DAGSTER_POSTGRES_URL: ${DAGSTER_POSTGRES_URL:-postgresql://dagster:dagster@postgres/dagster}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
+      VLLM_MODEL_NAME: ${VLLM_MODEL_NAME:-Qwen/Qwen2.5-1.5B-Instruct}
     volumes:
-      # DuckDB + Parquet + dashboard.html live on a shared named volume
       - eval_storage:/app/storage
-      # Drop .bin checkpoints here to trigger the sensor
       - ./checkpoints:/app/checkpoints
     depends_on:
       postgres:
@@ -38,9 +38,11 @@ services:
   dagster-daemon:
     build: .
     command: uv run dagster-daemon run
+    env_file: .env
     environment:
-      DAGSTER_POSTGRES_URL: postgresql://dagster:dagster@postgres/dagster
+      DAGSTER_POSTGRES_URL: ${DAGSTER_POSTGRES_URL:-postgresql://dagster:dagster@postgres/dagster}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
+      VLLM_MODEL_NAME: ${VLLM_MODEL_NAME:-Qwen/Qwen2.5-1.5B-Instruct}
     volumes:
       - eval_storage:/app/storage
       - ./checkpoints:/app/checkpoints
