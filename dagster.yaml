@@ -9,8 +9,3 @@ storage:
   postgres:
     postgres_url:
       env: DAGSTER_POSTGRES_URL
-
-load_from:
-  - python_module:
-      module_name: dagster_pipelines
-      attribute: defs

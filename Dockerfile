@@ -13,7 +13,7 @@ COPY dagster_pipelines/ ./dagster_pipelines/
 COPY eval_harness/ ./eval_harness/
 COPY inference/ ./inference/
 COPY storage/ ./storage/
-COPY dagster.yaml ./
+COPY dagster.yaml workspace.yaml ./
 
 # DuckDB + Parquet files live here at runtime
 RUN mkdir -p storage
