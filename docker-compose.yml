@@ -1,0 +1,53 @@
+services:
+
+  # ── Dagster run/event storage ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dagster
+      POSTGRES_PASSWORD: dagster
+      POSTGRES_DB: dagster
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dagster"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Dagster UI ─────────────────────────────────────────────────────────────
+  dagster-webserver:
+    build: .
+    command: uv run dagster-webserver -h 0.0.0.0 -p 3000
+    ports:
+      - "3000:3000"
+    environment:
+      DAGSTER_POSTGRES_URL: postgresql://dagster:dagster@postgres/dagster
+      # Override vLLM endpoint at runtime: docker compose run -e VLLM_BASE_URL=...
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
+    volumes:
+      # DuckDB + Parquet + dashboard.html live on a shared named volume
+      - eval_storage:/app/storage
+      # Drop .bin checkpoints here to trigger the sensor
+      - ./checkpoints:/app/checkpoints
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Dagster daemon (sensors, schedules, backfills) ─────────────────────────
+  dagster-daemon:
+    build: .
+    command: uv run dagster-daemon run
+    environment:
+      DAGSTER_POSTGRES_URL: postgresql://dagster:dagster@postgres/dagster
+      VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
+    volumes:
+      - eval_storage:/app/storage
+      - ./checkpoints:/app/checkpoints
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:   # Dagster internal state
+  eval_storage:    # DuckDB, Parquet snapshots, dashboard HTML

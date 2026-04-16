@@ -1,0 +1,16 @@
+telemetry:
+  enabled: false
+
+# Postgres is used as Dagster's run/event store when running in Docker.
+# DAGSTER_POSTGRES_URL must be set in the environment (see docker-compose.yml).
+# For local dev (dagster dev -m dagster_pipelines), leave DAGSTER_HOME unset
+# so Dagster falls back to SQLite in ~/.dagster.
+storage:
+  postgres:
+    postgres_url:
+      env: DAGSTER_POSTGRES_URL
+
+load_from:
+  - python_module:
+      module_name: dagster_pipelines
+      attribute: defs
