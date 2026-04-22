@@ -26,3 +26,13 @@ def ensure_schema(con: duckdb.DuckDBPyConnection) -> None:
             value DOUBLE
         )
     """)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS multimodal_scores (
+            run_id VARCHAR,
+            benchmark VARCHAR,
+            metric VARCHAR,
+            value DOUBLE,
+            samples_evaluated INTEGER,
+            ran_at TIMESTAMP
+        )
+    """)

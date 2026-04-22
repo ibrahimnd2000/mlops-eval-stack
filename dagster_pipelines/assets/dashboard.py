@@ -1,6 +1,6 @@
 import duckdb
 from dagster import AssetExecutionContext, MetadataValue, asset
-from storage.db import STORAGE_DIR, get_connection
+from storage.db import STORAGE_DIR, ensure_schema, get_connection
 
 DASHBOARD_PATH = STORAGE_DIR / "dashboard.html"
 
@@ -25,6 +25,7 @@ def _table(con: duckdb.DuckDBPyConnection, sql: str) -> str:
 def dashboard(context: AssetExecutionContext) -> None:
     """Write a static HTML dashboard with benchmark score trends and latency summary."""
     con = get_connection()
+    ensure_schema(con)
 
     scores_html = _table(con, """
         SELECT run_id, task, metric, ROUND(value, 4) AS value, ran_at
@@ -40,7 +41,17 @@ def dashboard(context: AssetExecutionContext) -> None:
         LIMIT 20
     """)
 
+    multimodal_html = _table(con, """
+        SELECT run_id, benchmark, metric, ROUND(value, 4) AS value,
+               samples_evaluated, ran_at
+        FROM multimodal_scores
+        ORDER BY ran_at DESC
+        LIMIT 50
+    """)
+
     con.close()
+
+    multimodal_section = f"<h2>Multimodal scores (PathVQA)</h2>\n{multimodal_html}"
 
     html = f"""<!doctype html>
 <html lang="en">
@@ -50,6 +61,7 @@ def dashboard(context: AssetExecutionContext) -> None:
 <h1>LLM Eval Dashboard</h1>
 <h2>Benchmark scores</h2>
 {scores_html}
+{multimodal_section}
 <h2>Latency (ms)</h2>
 {latency_html}
 </body></html>"""
