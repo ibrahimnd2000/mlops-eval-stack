@@ -16,3 +16,7 @@ services:
       - ./storage:/app/storage
       - ./dagster.yaml:/app/dagster.yaml
       - ./workspace.yaml:/app/workspace.yaml
+
+  mlflow:
+    volumes:
+      - ./storage:/app/storage

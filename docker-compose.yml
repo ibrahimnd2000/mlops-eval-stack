@@ -1,5 +1,4 @@
 services:
-
   # ── Dagster run/event storage ──────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -7,10 +6,12 @@ services:
       POSTGRES_USER: dagster
       POSTGRES_PASSWORD: dagster
       POSTGRES_DB: dagster
+    ports:
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dagster"]
+      test: ['CMD-SHELL', 'pg_isready -U dagster']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -20,13 +21,15 @@ services:
     build: .
     command: uv run dagster-webserver -h 0.0.0.0 -p 3000
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file: .env
     environment:
       # postgres URL override: keeps DB creds out of .env when running locally
       DAGSTER_POSTGRES_URL: ${DAGSTER_POSTGRES_URL:-postgresql://dagster:dagster@postgres/dagster}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
       VLLM_MODEL_NAME: ${VLLM_MODEL_NAME:-Qwen/Qwen2.5-1.5B-Instruct}
+      VLLM_MULTIMODAL_BASE_URL: ${VLLM_MULTIMODAL_BASE_URL:-http://host.docker.internal:8001}
+      VLLM_MULTIMODAL_MODEL_NAME: ${VLLM_MULTIMODAL_MODEL_NAME:-llava-hf/llava-1.5-7b-hf}
     volumes:
       - eval_storage:/app/storage
       - ./checkpoints:/app/checkpoints
@@ -43,6 +46,8 @@ services:
       DAGSTER_POSTGRES_URL: ${DAGSTER_POSTGRES_URL:-postgresql://dagster:dagster@postgres/dagster}
       VLLM_BASE_URL: ${VLLM_BASE_URL:-http://host.docker.internal:8000}
       VLLM_MODEL_NAME: ${VLLM_MODEL_NAME:-Qwen/Qwen2.5-1.5B-Instruct}
+      VLLM_MULTIMODAL_BASE_URL: ${VLLM_MULTIMODAL_BASE_URL:-http://host.docker.internal:8001}
+      VLLM_MULTIMODAL_MODEL_NAME: ${VLLM_MULTIMODAL_MODEL_NAME:-llava-hf/llava-1.5-7b-hf}
     volumes:
       - eval_storage:/app/storage
       - ./checkpoints:/app/checkpoints
@@ -50,6 +55,15 @@ services:
       postgres:
         condition: service_healthy
 
+  # ── MLflow tracking UI ─────────────────────────────────────────────────────
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.19.0
+    command: mlflow ui --host 0.0.0.0 --port 5000 --backend-store-uri file:///app/storage/mlruns
+    ports:
+      - '5001:5000'
+    volumes:
+      - eval_storage:/app/storage
+
 volumes:
-  postgres_data:   # Dagster internal state
-  eval_storage:    # DuckDB, Parquet snapshots, dashboard HTML
+  postgres_data: # Dagster internal state
+  eval_storage: # DuckDB, Parquet snapshots, dashboard HTML, MLflow runs
