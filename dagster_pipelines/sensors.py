@@ -3,6 +3,11 @@ import os
 from dagster import RunRequest, SensorEvaluationContext, define_asset_job, sensor
 
 eval_job = define_asset_job("eval_job", selection=["eval_results", "score_table", "dashboard"])
+multimodal_eval_job = define_asset_job(
+    "multimodal_eval_job",
+    selection=["pathvqa_eval_results", "multimodal_score_table"],
+)
+registry_job = define_asset_job("registry_job", selection=["model_registry_entry"])
 
 
 @sensor(job=eval_job, minimum_interval_seconds=30)
