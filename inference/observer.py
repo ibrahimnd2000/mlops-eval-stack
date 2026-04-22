@@ -3,8 +3,11 @@ import time
 from pathlib import Path
 
 
+_DEFAULT_LOG = Path(__file__).resolve().parent.parent / "storage" / "token_metrics.jsonl"
+
+
 class TokenObserver:
-    def __init__(self, log_path="storage/token_metrics.jsonl"):
+    def __init__(self, log_path: Path | str = _DEFAULT_LOG):
         self.log_path = Path(log_path)
     
     def record(self, prompt_tokens: int, completion_tokens: int,
